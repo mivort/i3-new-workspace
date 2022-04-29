@@ -3,18 +3,42 @@
 # Script occupies free workspace with lowest possible number
 # Add -m as an argument to move current container to the next workspace
 
-# Use swaymsg if WAYLAND_DISPLAY is set
-WM_MSG=${WAYLAND_DISPLAY+swaymsg}
-WM_MSG=${WM_MSG:-i3-msg}
+# Enable strict mode
+set -euo pipefail
 
-WS_JSON=$($WM_MSG -t get_workspaces)
+function show_help {
+    echo "USAGE:"
+    echo "    i3-new-workspace [OPTIONS]"
+    echo
+    echo "OPTIONS:"
+    echo "    -m, --move   Move current container to the new workspace"
+    echo "    -h, --help   Print help information"
+}
+
+# Use swaymsg if WAYLAND_DISPLAY is set
+msg_cmd=${WAYLAND_DISPLAY+swaymsg}
+msg_cmd=${msg_cmd:-i3-msg}
+
+# Set options
+opt_mode=new
+
+# Process CLI arguments
+while [ $# -gt 0 ] ; do
+    case $1 in
+        "--move"|"-m") opt_mode=move ;;
+        "--help"|"-h"|"-?") show_help ; exit 0 ;;
+        *) show_help ; exit 1 ;;
+    esac
+    shift
+done
+
+ws_json=$($msg_cmd -t get_workspaces)
 for i in {1..10} ; do
-    if [[ ! $WS_JSON =~ \"num\":\ ?$i ]] ; then
-        if [[ $1 == '-m' ]] ; then
-            $WM_MSG move container to workspace "$i"
-        else
-            $WM_MSG workspace number "$i"
-        fi
+    [[ $ws_json =~ \"num\":\ ?$i ]] && continue
+
+    case $opt_mode in
+        "new") $msg_cmd workspace number "$i" ;;
+        "move") $msg_cmd move container to workspace number "$i" ;;
+    esac
     break
-    fi
 done
