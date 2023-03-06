@@ -15,3 +15,6 @@ Add something like this to your `i3/config` file:
 
     # press ~ + Shift to move current container to a new workspace
     bindsym $mod+Shift+grave exec --no-startup-id i3-new-workspace -m
+
+    # press ~ + Alt to carry (move and focus) current container to a new workspace
+    bindsym $mod+Mod1+grave exec --no-startup-id i3-new-workspace -c
